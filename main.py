@@ -1,18 +1,33 @@
 #modules
 import time
 import random
-from machine import Pin
+from machine import ADC, Pin
+
+#assign buttons
+button1 = Pin(13, Pin.IN, Pin.PULL_DOWN)
+button2 = Pin(8, Pin.IN, Pin.PULL_DOWN)
+button3 = Pin(3, Pin.IN, Pin.PULL_DOWN)
+#assign potentiometer
+potentiometer = ADC(Pin(27))
 #assign led
 red = Pin(18, Pin.OUT)
 amber = Pin(19, Pin.OUT)
 green = Pin(20, Pin.OUT)
-button1 = Pin(13, Pin.IN, Pin.PULL_DOWN)
-button2 = Pin(8, Pin.IN, Pin.PULL_DOWN)
-button3 = Pin(3, Pin.IN, Pin.PULL_DOWN)
+
+#constants
+ran_num = random.randint(1,3)
+button1_end = False
+button2_end = False
+reading = 0
+
+#reset
+red.value(0)
+amber.value(0)
+green.value(0)
 
 #sub-routines
 def wave():
-    for x in range(1,10):
+    for x in range(1,3):
         red.value(1)
         time.sleep(0.5)
         red.value(0)
@@ -24,7 +39,7 @@ def wave():
         green.value(0)
         
 def ran_blink(ran_num):
-    for x in range(1,10):
+    for x in range(1,5):
         random_num = random.randint(1,3)
         if random_num == 1:
             red.value(1)
@@ -76,13 +91,33 @@ def button2_prg(button2_end):
         else:
             continue
 
-#constants
-ran_num = random.randint(1,3)
-button1_end = False
-button2_end = False
-red.value(0)
-amber.value(0)
-green.value(0)
+def potentiometer_mode(reading):
+    while True:
+        reading = potentiometer.read_u16()
+        print(reading)
+        time.sleep(0.1)
+        if button3.value() == 1:
+            print("Back")
+            red.value(0)
+            amber.value(0)
+            green.value(0)
+            button2_end = True
+            return button2_end
+        elif reading <= 383:
+            red.value(1)
+            amber.value(0)
+            green.value(0)
+        elif 383 < reading < 560:        
+            red.value(0) 
+            amber.value(1)
+            green.value(0)
+        elif reading >= 560:
+            red.value(0) 
+            amber.value(0)
+            green.value(1)
+        else:
+            continue
+            
 
 #main
 while True:
@@ -105,7 +140,6 @@ while True:
         red.value(1)
         time.sleep(0.3)
         red.value(0)
-        print("End of program.")
-        end = True
+        potentiometer_mode(reading)
     else:
         continue
