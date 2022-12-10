@@ -1,7 +1,7 @@
 #modules
 import time
 import random
-from machine import ADC, Pin
+from machine import ADC, Pin, PWM
 
 #assign buttons
 button1 = Pin(13, Pin.IN, Pin.PULL_DOWN)
@@ -13,17 +13,25 @@ potentiometer = ADC(Pin(27))
 red = Pin(18, Pin.OUT)
 amber = Pin(19, Pin.OUT)
 green = Pin(20, Pin.OUT)
+#assign buzzer
+buzzer = PWM(Pin(9))
 
 #constants
 ran_num = random.randint(1,3)
 button1_end = False
 button2_end = False
 reading = 0
+volume = 500
+C = 523
+D = 587
+E = 659
+G = 784
 
 #reset
 red.value(0)
 amber.value(0)
 green.value(0)
+buzzer.duty_u16(0)
 
 #sub-routines
 def wave():
@@ -53,6 +61,13 @@ def ran_blink(ran_num):
             green.value(1)
             time.sleep(0.5)
             green.value(0)
+
+def playtone(note,vol,delay1,delay2):
+    buzzer.duty_u16(vol)
+    buzzer.freq(note)
+    time.sleep(delay1)
+    buzzer.duty_u16(0)
+    time.sleep(delay2)
         
 def button1_prg(button1_end):
     while True:
@@ -91,10 +106,8 @@ def button2_prg(button2_end):
         else:
             continue
 
-def potentiometer_mode(reading):
+def button3_prg():
     while True:
-        reading = potentiometer.read_u16()
-        print(reading)
         time.sleep(0.1)
         if button3.value() == 1:
             print("Back")
@@ -103,21 +116,33 @@ def potentiometer_mode(reading):
             green.value(0)
             button2_end = True
             return button2_end
-        elif reading <= 383:
-            red.value(1)
-            amber.value(0)
-            green.value(0)
-        elif 383 < reading < 560:        
-            red.value(0) 
-            amber.value(1)
-            green.value(0)
-        elif reading >= 560:
-            red.value(0) 
-            amber.value(0)
-            green.value(1)
         else:
-            continue
-            
+            while True:
+                volume = potentiometer.read_u16()
+                playtone(E,volume,0.1,0.2)
+                volume = potentiometer.read_u16()
+                playtone(E,volume,0.1,0.2)
+                volume = potentiometer.read_u16()
+                playtone(E,volume,0.1,0.5)
+                volume = potentiometer.read_u16()
+                playtone(E,volume,0.1,0.2)
+                volume = potentiometer.read_u16()
+                playtone(E,volume,0.1,0.2)
+                volume = potentiometer.read_u16()
+                playtone(E,volume,0.1,0.5)
+                volume = potentiometer.read_u16()
+                playtone(E,volume,0.1,0.2)
+                volume = potentiometer.read_u16()
+                playtone(G,volume,0.1,0.2)
+                volume = potentiometer.read_u16()
+                playtone(C,volume,0.1,0.2)
+                volume = potentiometer.read_u16()
+                playtone(D,volume,0.1,0.2)
+                volume = potentiometer.read_u16()
+                playtone(E,volume,0.1,0.2)
+                volume = potentiometer.read_u16()
+                buzzer.duty_u16(0)
+                time.sleep(5)
 
 #main
 while True:
@@ -137,9 +162,10 @@ while True:
         button2_prg(button2_end)
         button2_end = False
     elif button3.value() == 1:
+        print("Jingle bells tune")
         red.value(1)
         time.sleep(0.3)
         red.value(0)
-        potentiometer_mode(reading)
+        button3_prg()
     else:
         continue
